@@ -28,9 +28,21 @@ class Ui(QtWidgets.QMainWindow):
     def __init__(self):
         super(Ui, self).__init__()
         uic.loadUi("UI.ui", self)
+#       Widgets :
+        self.openFileDialog = QtWidgets.QFileDialog()
 
 
 #		 Widgets Slot connection from here:
+        # Input section
+        self.pickInputBtn.clicked.connect(self.pickInputHandle)
+        # Output section
+        self.pickDestBtn.clicked.connect(self.pickOutputHandle)
+
+        # Config section
+        self.defaultLenBtn.clicked.connect(self.pickDefaultLen)
+        self.processBtn.clicked.connect(self.processHandle)
+
+        # Auto section
         self.my_logger = MyBarLogger()
         self.progressBar.setValue(0)
         self.run1Btn.clicked.connect(self.runProfile1)
@@ -41,40 +53,76 @@ class Ui(QtWidgets.QMainWindow):
 
 
 #	 Global variable from here:
-    destOutput = "D:\Videos"
+    inputFile = "D:\Videos"
+    outputDirectory = "D:\Videos"
     len = 15.8
+    default_len = 15.8
     counter = 0
 #	 Handle Functions from here:
+    # Input section
+
+    def pickInputHandle(self):
+        self.inputFile, _filter = self.openFileDialog.getOpenFileName()
+        # self.inputLine.setText(os.path.basename(self.inputFile))
+        self.inputLine.setText(self.inputFile)
+    # Output section
+
+    def pickOutputHandle(self):
+        self.outputDirectory = self.openFileDialog.getExistingDirectory()
+        self.destLine.setText(self.outputDirectory)
+    # Config section
+
+    def pickDefaultLen(self):
+        self.len = self.default_len
+        self.selectLenLine.setText(str(self.len))
+
+    def processHandle(self):
+        self.len = float(self.selectLenLine.text())
+        self.inputFile = self.inputLine.text()
+        self.outputDirectory = self.destLine.text()
+        result = self.convert(self.inputFile, self.outputDirectory, self.len)
+        self.counter = self.counter+1
+
+        if result == 0:
+            self.statusBar().showMessage("--Done!--")
+
+    # Auto section
 
     def runProfile1(self):
         self.statusBar().showMessage("--Processing...--")
-        fileSrc = "D:\Videos"
-        result=self.convert(fileSrc, self.destOutput, self.len)
+        inputFile = "D:\Videos"
+        inputFile = self.pickLastFile(inputFile)  # absolute address file
+        result = self.convert(
+            inputFile, self.outputDirectory, self.default_len)
         self.counter = self.counter+1
-        
-        if result==0:
+
+        if result == 0:
             self.statusBar().showMessage("--Done!--")
 
     def runProfile2(self):
         self.statusBar().showMessage("--Processing...--")
-        fileSrc = "H:\Documents\Bandicam"
-        result=self.convert(fileSrc, self.destOutput, self.len)
+        inputFile = "H:\Documents\Bandicam"
+        inputFile = self.pickLastFile(inputFile)  # absolute address file
+        result = self.convert(
+            inputFile, self.outputDirectory, self.default_len)
 
         self.counter = self.counter+1
-        if result==0:
+        if result == 0:
             self.statusBar().showMessage("--Done!--")
 
     def runProfile3(self):
         self.statusBar().showMessage("--Processing...--")
-        fileSrc = "C:\\Users\\RV\\Desktop\\BandicamSSD"
-        result=self.convert(fileSrc, self.destOutput, self.len)
+        inputFile = "C:\\Users\\RV\\Desktop\\BandicamSSD"
+        inputFile = self.pickLastFile(inputFile)  # absolute address file
+        result = self.convert(
+            inputFile, self.outputDirectory, self.default_len)
         self.counter = self.counter+1
 
-        if result==0:
+        if result == 0:
             self.statusBar().showMessage("--Done!--")
-        
 
     #	 Slave function from here:
+
     def progressBar_func(self, i):
         self.progressBar.setValue(i)
 
@@ -83,23 +131,21 @@ class Ui(QtWidgets.QMainWindow):
         paths = [os.path.join(src, basename) for basename in files]
         return max(paths, key=os.path.getctime)
 
-    def convert(self, src, dest, len):
+    def convert(self, inputFile, destOutput, len):
         prefix = str(self.counter)+"_"
-        targetFileName = self.pickLastFile(src)
-        newBasename = prefix+os.path.basename(targetFileName)
-        newDest = os.path.join(dest, newBasename)
 
-        # newName=prefix+targetFileName
+        newBasename = prefix+os.path.basename(inputFile)
+        newDest = os.path.join(destOutput, newBasename)
 
         # loading video dsa gfg intro video
-        clip = VideoFileClip(targetFileName)
+        clip = VideoFileClip(inputFile)
         if clip.duration < 60 and clip.duration > 15:
 
             # getting only first 5 seconds
             # clip = clip.subclip(0, clip.duration)
-            final = clip.fx(vfx.speedx, clip.duration/Ui.len)
+            final = clip.fx(vfx.speedx, clip.duration/len)
             # new clip with new duration
-            # new_clip = clip.set_duration(Ui.len)
+            # new_clip = clip.set_duration(len)
 
             # new clip with new duration
             final.write_videofile(newDest, logger=self.my_logger)
