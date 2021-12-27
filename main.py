@@ -1,11 +1,11 @@
 
-from posixpath import basename
-from types import CellType
+import traceback
 from PyQt5 import QtCore, QtWidgets, uic
 import sys
 from moviepy.editor import *
 from proglog import TqdmProgressBarLogger
 from math import ceil
+import threading
 
 
 class MyBarLogger(TqdmProgressBarLogger, QtWidgets.QWidget):
@@ -41,6 +41,7 @@ class Ui(QtWidgets.QMainWindow):
         # Config section
         self.defaultLenBtn.clicked.connect(self.pickDefaultLen)
         self.processBtn.clicked.connect(self.processHandle)
+        self.selectLenLine.setText("15.8")
 
         # Auto section
         self.my_logger = MyBarLogger()
@@ -84,12 +85,12 @@ class Ui(QtWidgets.QMainWindow):
         self.counter = self.counter+1
 
         if result == 0:
-            self.statusBar().showMessage("--Done!--")
+            self.statusBar().showMessage("--Processing...--")
 
     # Auto section
 
     def runProfile1(self):
-        self.statusBar().showMessage("--Processing...--")
+
         inputFile = "D:\Videos"
         inputFile = self.pickLastFile(inputFile)  # absolute address file
         result = self.convert(
@@ -97,10 +98,10 @@ class Ui(QtWidgets.QMainWindow):
         self.counter = self.counter+1
 
         if result == 0:
-            self.statusBar().showMessage("--Done!--")
+            self.statusBar().showMessage("--Processing...--")
 
     def runProfile2(self):
-        self.statusBar().showMessage("--Processing...--")
+
         inputFile = "H:\Documents\Bandicam"
         inputFile = self.pickLastFile(inputFile)  # absolute address file
         result = self.convert(
@@ -108,10 +109,10 @@ class Ui(QtWidgets.QMainWindow):
 
         self.counter = self.counter+1
         if result == 0:
-            self.statusBar().showMessage("--Done!--")
+            self.statusBar().showMessage("--Processing...--")
 
     def runProfile3(self):
-        self.statusBar().showMessage("--Processing...--")
+
         inputFile = "C:\\Users\\RV\\Desktop\\BandicamSSD"
         inputFile = self.pickLastFile(inputFile)  # absolute address file
         result = self.convert(
@@ -119,17 +120,22 @@ class Ui(QtWidgets.QMainWindow):
         self.counter = self.counter+1
 
         if result == 0:
-            self.statusBar().showMessage("--Done!--")
+            self.statusBar().showMessage("--Processing...--")
 
     #	 Slave function from here:
 
     def progressBar_func(self, i):
         self.progressBar.setValue(i)
+        if i == 100:
+            self.statusBar().showMessage("---Done!---")
 
     def pickLastFile(self, src):
         files = os.listdir(src)
         paths = [os.path.join(src, basename) for basename in files]
         return max(paths, key=os.path.getctime)
+
+    def worker(self, newDest, final):
+        final.write_videofile(newDest, logger=self.my_logger)
 
     def convert(self, inputFile, destOutput, len):
         prefix = str(self.counter)+"_"
@@ -148,8 +154,19 @@ class Ui(QtWidgets.QMainWindow):
             # new_clip = clip.set_duration(len)
 
             # new clip with new duration
-            final.write_videofile(newDest, logger=self.my_logger)
-            return 0
+
+            try:
+                myThread = threading.Thread(target=self.worker,
+                                            args=(newDest, final,))
+                myThread.start()
+
+                return 0
+            except:
+                print(traceback.format_exc())
+                print("Error: unable to start thread")
+                self.statusBar().showMessage("Error: unable to start thread")
+                return 1
+
         else:
             self.statusBar().showMessage("uhmm, duration > 60s or < 15s. Re-check inputVideo!")
             return 1
