@@ -156,7 +156,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def worker(self, newDest, final):
         final.write_videofile(newDest, logger=self.my_logger)
-        self.statusBar().showMessage("---"+str(Ui.counter)+": Done!---")
+        self.statusBar().showMessage("---"+str(self.counter-1)+": Done!---")
 
     def convert(self, inputFile, destOutput, len):
 
