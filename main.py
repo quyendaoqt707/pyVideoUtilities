@@ -205,6 +205,9 @@ class Ui(QtWidgets.QMainWindow):
     leftInner = 0
     rightInner = 0
 
+    removeInnerFlag=False;
+    normalizationAfterTrimFlag= False;
+
     def pickLastestFileToTrim(self):
         self.targetTrimFileName_full = self.pickLastFile(
             self.inputFile)
@@ -320,33 +323,57 @@ class Ui(QtWidgets.QMainWindow):
         self.lineEdit_5.setText(str(self.rightInner))
 
     def noAndreCheckBoxHandle(self):  # normalization and remove checkbox handle
-        pass
+        if self.removeInnerCheckBox.isChecked() == True:
+            self.removeInnerFlag=True
+            self.pickLeftBtn.setEnabled(True)
+            self.pickRightBtn.setEnabled(True)
+            self.lineEdit_4.setEnabled(True)
+            self.lineEdit_5.setEnabled(True)
+        else: 
+            self.removeInnerFlag=False
+            self.leftInner=0
+            self.rightInner=0
+            self.pickLeftBtn.setEnabled(False)
+            self.pickRightBtn.setEnabled(False)
+            self.lineEdit_4.setEnabled(False)
+            self.lineEdit_5.setEnabled(False)
+
+
+        if self.normalizationCheckBox.isChecked() == True:
+            self.normalizationAfterTrimFlag=True
+        else: self.normalizationAfterTrimFlag=False
+            
+
 
     def trimSlave(self, start, end, left, right):
-        if left == right == 0 and left*right != 0:
-            prefix = str(start)+"-"+str(left)+str(right)+"-"+str(end)+'_'
+        # if left == right == 0 and left*right != 0:
+        if right!=0:
+            prefix = str(start)+"-"+str(left)+'-'+str(right)+"-"+str(end)+'_'
         else:
             prefix = str(start)+"-"+str(end)+'_'
 
         newBasename = prefix+os.path.basename(self.targetTrimFileName_full)
         newDest = os.path.join(self.outputDirectory, newBasename)
         if os.path.isfile(newDest) == True:
-            self.statusBar().showMessage("File name already exists.")
+            # self.statusBar().showMessage("File name already exists.")
+            newBasename=str(self.counter)+'_'+newBasename;
+            newDest = os.path.join(self.outputDirectory, newBasename)
+        
+
+        if left == right == 0:
+            subClip = self.trim_clip.subclip(start, end)
+            self.statusBar().clearMessage()
+            subClip.write_videofile(newDest, logger=self.my_logger)
+            self.statusBar().showMessage("Trimmed: "+newBasename)
+        elif start <= left <= right <= end and end-start-(left-right) > 0:
+            subClip = self.trim_clip.subclip(start, end)
+            subClip = subClip.cutout(left-start, right-start)
+            # subClip = self.trim_clip.cutout(left, right)
+            subClip.write_videofile(newDest, logger=self.my_logger)
+            self.statusBar().showMessage(
+                f"Trimmed and CutOut[{left}-{right}]: "+newBasename)
         else:
-            if left == right == 0:
-                subClip = self.trim_clip.subclip(start, end)
-                self.statusBar().clearMessage()
-                subClip.write_videofile(newDest, logger=self.my_logger)
-                self.statusBar().showMessage("Trimed: "+newBasename)
-            elif start <= left <= right <= end and end-start-(left-right) > 0:
-                subClip = self.trim_clip.subclip(start, end)
-                subClip = subClip.cutout(left-start, right-start)
-                # subClip = self.trim_clip.cutout(left, right)
-                subClip.write_videofile(newDest, logger=self.my_logger)
-                self.statusBar().showMessage(
-                    f"Trimed and CutOut[{left}-{right}]: "+newBasename)
-            else:
-                self.statusBar().showMessage("Error: Double-check all positions!")
+            self.statusBar().showMessage("Error: Double-check all positions!")
 
 
 # Main loop from here:
