@@ -1,6 +1,5 @@
 
-import random
-from re import S
+# import random
 from time import sleep
 import traceback
 from PyQt5 import QtCore, QtWidgets, uic
@@ -10,9 +9,85 @@ from moviepy.editor import *
 from proglog import TqdmProgressBarLogger
 from math import ceil, floor
 import threading
-from PIL import Image
+# from PIL import Image
 import tempfile
 from shutil import rmtree
+from PyQt5.QtWinExtras import QWinTaskbarProgress, QWinTaskbarButton
+
+
+class FloatWindow(QtWidgets.QWidget):
+    """
+    This "window" is a QWidget. If it has no parent, it
+    will appear as a free-floating window as we want.
+    """
+    def __init__(self):
+        super().__init__()
+        uic.loadUi("FloatWindows.ui", self)
+        # FloatWindow.setWindowFlags(QtCore.Qt.WindowType.CustomizeWindowHint | QtCore.Qt.WindowType.WindowCloseButtonHint | QtCore.Qt.WindowType.WindowMinimizeButtonHint)
+        
+        self.setWindowFlags(
+        QtCore.Qt.Window |
+        QtCore.Qt.CustomizeWindowHint |
+        QtCore.Qt.WindowTitleHint |
+        QtCore.Qt.WindowStaysOnTopHint 
+        )
+     
+        self.runBtn.clicked.connect(self.floatRunHandle)
+        self.isJobRunning=False
+
+        # init WinTaskBarProgess: 
+        self.taskbar_button = QWinTaskbarButton()
+        self.taskbar_progress = self.taskbar_button.progress()
+        self.taskbar_progress.setRange(0, 100)
+        self.taskbar_progress.setValue(0)
+
+    def updateTaskBarProgress(self,currentValue):
+        self.taskbar_progress.setValue(currentValue)
+        # if currentValue>=99:
+            # self.isJob Running=False; background-color: Transparent
+            # self.runBtn.setStyleSheet("background-color : Transparent")
+
+    def showTaskBarProgress(self):
+        # self.taskbar_button = QWinTaskbarButton()
+        # self.taskbar_progress = self.taskbar_button.progress()
+        # self.taskbar_progress.setRange(0, 100)
+        # self.taskbar_progress.setValue(0)
+        self.taskbar_progress.show()
+        self.taskbar_button.setWindow(self.windowHandle())
+    
+
+    def floatRunHandle(self):
+        
+        # if self.isJobRunning==False:
+            # self.isJobRunning=True
+
+        if Ui.floatProfile==1:
+            result = Ui.runProfile1(window)
+        elif Ui.floatProfile==2:
+            result =Ui.runProfile2(window)
+        else:
+            result =Ui.runProfile3(window)
+            
+
+        if result==0:
+            self.showTaskBarProgress()
+            self.runBtn.setStyleSheet("background-color : lime")
+        else:
+            self.runBtn.setStyleSheet("background-color : yellow")
+
+    def updateFloatProfileLabel(self):
+        if Ui.floatProfile==1:
+            text="Videos|Videos"
+        elif Ui.floatProfile==2:
+            text="Bandicam|Videos"
+        else:
+            text="BandicamSSD|Videos"
+
+        self.profileLabel.setText(text)
+        # self.taskbarProgress.show()
+        # self.showEvent()
+        
+
 
 
 class MyBarLogger(TqdmProgressBarLogger, QtWidgets.QWidget):
@@ -57,6 +132,7 @@ class Ui(QtWidgets.QMainWindow):
         self.run2Btn.clicked.connect(self.runProfile2)
         self.run3Btn.clicked.connect(self.runProfile3)
         self.my_logger.progressBar_signal.connect(self.progressBar_func)
+        # self.my_logger.progressBar_signal.connect(self.progressBar_func)
 
         # Tab 2: trim video section:
         self.pickLastestBtn.clicked.connect(self.pickLastestFileToTrim)
@@ -72,6 +148,23 @@ class Ui(QtWidgets.QMainWindow):
         self.show()
 
 
+        app.aboutToQuit.connect(self.closeEvent)
+
+
+        # Float windows:
+        
+        self.floatActiveBtn.clicked.connect(self.show_float_window)
+
+        self.radioButton.toggled.connect(self.changeFloatProfile)
+        self.radioButton_2.toggled.connect(self.changeFloatProfile)
+        self.radioButton_3.toggled.connect(self.changeFloatProfile)
+
+        self.w = FloatWindow()
+        self.isFloatShow=True
+        self.w.show()
+        
+
+    floatProfile=1
 #	 Global variable from here:
     inputFile = "D:\Videos"
     outputDirectory = "D:\Videos"
@@ -118,7 +211,11 @@ class Ui(QtWidgets.QMainWindow):
         self.counter = self.counter+1
 
         if result == 0:
-            self.statusBar().showMessage(str(self.counter-1)+": --Processing...--")
+            # self.statusBar().showMessage(str(self.counter-1)+": --Processing...--")
+            self.statusBar().showMessage(inputFile+"    : --Processing...--")
+            return 0
+        else:
+            return 1
 
     def runProfile2(self):
 
@@ -129,7 +226,11 @@ class Ui(QtWidgets.QMainWindow):
 
         self.counter = self.counter+1
         if result == 0:
-            self.statusBar().showMessage(str(self.counter-1)+": --Processing...--")
+            # self.statusBar().showMessage(str(self.counter-1)+": --Processing...--")
+            self.statusBar().showMessage(inputFile+"    : --Processing...--")
+            return 0
+        else:
+            return 1
 
     def runProfile3(self):
 
@@ -140,12 +241,19 @@ class Ui(QtWidgets.QMainWindow):
         self.counter = self.counter+1
 
         if result == 0:
-            self.statusBar().showMessage(str(self.counter-1)+": --Processing...--")
+            # self.statusBar().showMessage(str(self.counter-1)+": --Processing...--")
+            self.statusBar().showMessage(inputFile+"    : --Processing...--")
+            return 0
+        else:
+            return 1
+
+
 
     #	 Slave function from here:
 
     def progressBar_func(self, i):
         self.progressBar.setValue(i)
+        self.w.updateTaskBarProgress(i)
         # if i == 100:
         # self.statusBar().showMessage("---"+str(Ui.counter)+": Done!---")
 
@@ -156,7 +264,8 @@ class Ui(QtWidgets.QMainWindow):
 
     def worker(self, newDest, final):
         final.write_videofile(newDest, logger=self.my_logger)
-        self.statusBar().showMessage("---"+str(self.counter-1)+": Done!---")
+        # self.statusBar().showMessage("---"+str(self.counter-1)+str(newDest)+": Done!---")
+        self.statusBar().showMessage("---"+str(newDest)+"    : Done!---")
 
     def convert(self, inputFile, destOutput, len):
 
@@ -375,6 +484,35 @@ class Ui(QtWidgets.QMainWindow):
         else:
             self.statusBar().showMessage("Error: Double-check all positions!")
 
+
+    def show_float_window(self):
+        if self.isFloatShow==False:
+            self.isFloatShow= True
+            self.w.show()
+        else:
+            self.isFloatShow= False
+            self.w.close()
+
+    def changeFloatProfile(self):
+        if self.radioButton.isChecked() == True:
+            Ui.floatProfile=1;
+            # self.w.updateFloatProfileLabel()
+        elif self.radioButton_2.isChecked() == True:
+            Ui.floatProfile=2;
+            # self.w.updateFloatProfileLabel()
+        else:
+            Ui.floatProfile=3;
+            
+        self.w.updateFloatProfileLabel() # Gọi một method của một đối tượng thông qua chính nó thì ko cần truyền self
+
+        # FloatWindow.updateFloatProfileLabel(self.w) 
+        # # --> gọi một non-static method của một class thì cần truyền vào đối tượng cho method đó ở vị trí self
+
+
+    def closeEvent(self1,self2): 
+        # self1 là class Ui tức là 'window' object , self2 class QApplication tức là 'app' object
+        self1.w.close()
+        sys.exit(0)
 
 # Main loop from here:
 app = QtWidgets.QApplication(sys.argv)

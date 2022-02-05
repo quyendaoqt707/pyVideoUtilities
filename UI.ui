@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>878</width>
+    <width>900</width>
     <height>523</height>
    </rect>
   </property>
@@ -196,7 +196,7 @@
           <property name="title">
            <string>Auto</string>
           </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <layout class="QHBoxLayout" name="horizontalLayout_19">
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_5">
              <item>
@@ -225,25 +225,61 @@
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_4">
              <item>
-              <widget class="QPushButton" name="run1Btn">
-               <property name="text">
-                <string>Run1</string>
-               </property>
-              </widget>
+              <layout class="QHBoxLayout" name="horizontalLayout_4">
+               <item>
+                <widget class="QPushButton" name="run1Btn">
+                 <property name="text">
+                  <string>Run1</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="radioButton">
+                 <property name="text">
+                  <string>P1</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
              <item>
-              <widget class="QPushButton" name="run2Btn">
-               <property name="text">
-                <string>Run2</string>
-               </property>
-              </widget>
+              <layout class="QHBoxLayout" name="horizontalLayout_17">
+               <item>
+                <widget class="QPushButton" name="run2Btn">
+                 <property name="text">
+                  <string>Run2</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="radioButton_2">
+                 <property name="text">
+                  <string>P2</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
              <item>
-              <widget class="QPushButton" name="run3Btn">
-               <property name="text">
-                <string>Run3</string>
-               </property>
-              </widget>
+              <layout class="QHBoxLayout" name="horizontalLayout_18">
+               <item>
+                <widget class="QPushButton" name="run3Btn">
+                 <property name="text">
+                  <string>Run3</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="radioButton_3">
+                 <property name="text">
+                  <string>P3</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
             </layout>
            </item>
@@ -299,12 +335,12 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>440</x>
-          <y>10</y>
-          <width>411</width>
+          <y>20</y>
+          <width>431</width>
           <height>391</height>
          </rect>
         </property>
@@ -501,12 +537,12 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="resetBtn">
+            <widget class="QPushButton" name="floatActiveBtn">
              <property name="enabled">
               <bool>true</bool>
              </property>
              <property name="text">
-              <string>Reset</string>
+              <string>Float Active Toggle</string>
              </property>
             </widget>
            </item>
